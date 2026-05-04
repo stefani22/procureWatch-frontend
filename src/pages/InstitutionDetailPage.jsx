@@ -6,7 +6,7 @@ import {
     getContractsByInstitution,
     getDecisionsByInstitution,
     getProcurementPlansByInstitution,
-    getRiskAssessment,
+
 } from "../services/api";
 
 import { getRiskColor, getRiskLabel } from "../utils/helpers";
