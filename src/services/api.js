@@ -195,3 +195,34 @@ export async function getDecisionsByInstitution(institutionId) {
         procedureType: d.procedureType ?? "—",
     }));
 }
+// ── RISK ASSESSMENTS ──────────────────────────────────────────────────────────
+export async function getRiskAssessmentsByLevel(riskLevel, page = 0, size = 20) {
+    const params = new URLSearchParams({ page, size });
+    const data = await request(`/risk-assessments/risk-level/${riskLevel}?${params}`);
+    return {
+        items: (data.content || []).map(a => ({
+            id:               a.id,
+            contractId:       a.contractId,
+            ruleScore:        a.ruleScore        ? Math.round(Number(a.ruleScore))        : 0,
+            anomalyScore:     a.anomalyScore     ? Math.round(Number(a.anomalyScore))     : 0,
+            similarityScore:  a.similarityScore  ? Math.round(Number(a.similarityScore))  : 0,
+            clusterScore:     a.clusterScore     ? Math.round(Number(a.clusterScore))     : 0,
+            finalRiskScore:   a.finalRiskScore   ? Math.round(Number(a.finalRiskScore))   : 0,
+            riskLevel:        a.riskLevel        ?? "UNKNOWN",
+            priorityRank:     a.priorityRank     ?? 0,
+            modelVersion:     a.modelVersion     ?? "—",
+            evaluatedAt:      a.evaluatedAt      ?? null,
+            triggeredFlags:   a.triggeredFlags   ?? [],
+        })),
+        totalElements: data.totalElements ?? 0,
+        totalPages:    data.totalPages    ?? 0,
+    };
+}
+
+export async function evaluateAllContracts() {
+    return request(`/risk-assessments/evaluate/all`, { method: "POST" });
+}
+
+export async function evaluateContract(contractId) {
+    return request(`/risk-assessments/evaluate/contract/${contractId}`, { method: "POST" });
+}
