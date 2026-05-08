@@ -5,10 +5,11 @@ import DashboardPage           from "./pages/DashboardPage";
 import PlannedProcurementsPage from "./pages/PlannedProcurementsPage";
 import HighRiskQueuePage       from "./pages/HighRiskQueuePage";
 import ContractsPage           from "./pages/ContractsPage";
-// import ContractDetailPage   from "./pages/ContractDetailPage";
+import ContractDetailPage   from "./pages/ContractDetailPage";
 import RiskAnalysisPage     from "./pages/RiskAnalysisPage";
 import InstitutionDetailPage   from "./pages/InstitutionDetailPage";
 import { getInstitutions }     from "./services/api";
+import ReportsPage from "./pages/ReportsPage.jsx";
 
 function InstitutionsPage({ onOpenInstitution }) {
     const [institutions, setInstitutions] = useState([]);
@@ -140,12 +141,13 @@ export default function App() {
             <main style={{ padding: "80px 32px 40px" }}>
                 {page === "dashboard"          && <DashboardPage />}
                 {page === "contracts"          && <ContractsPage onOpenDetail={handleOpenContract} />}
-                {/* {page === "contract-detail" && <ContractDetailPage contractId={selectedContractId} onBack={() => setPage("contracts")} />} */}
+                {page === "contract-detail" && <ContractDetailPage contractId={selectedContractId} onBack={() => setPage("contracts")} />}
                 {page === "highrisk"           && <HighRiskQueuePage onOpenContract={handleOpenContract} />}
                 {page === "procurements"       && <PlannedProcurementsPage />}
                 {page === "institutions"       && <InstitutionsPage onOpenInstitution={handleOpenInstitution} />}
                 {page === "institution-detail" && <InstitutionDetailPage inst={selectedInstitution} onBack={() => setPage("institutions")} />}
                 {page === "riskanalysis"    && <RiskAnalysisPage />}
+                {page === "reports" && <ReportsPage />}
             </main>
         </div>
     );

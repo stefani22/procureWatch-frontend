@@ -5,6 +5,7 @@ const NAV_ITEMS = [
     { id: "procurements", label: "Planned Procurements" },
     { id: "institutions", label: "Institutions" },
     { id: "riskanalysis", label: "Risk Analysis" },
+    { id: "reports",      label: "Reports" },
 ];
 
 export default function TopNav({ page, setPage, onLogout, user }) {
