@@ -1,47 +1,12 @@
-
-
-import { useState, useEffect } from "react";
-import {
-    getNoticesByInstitution,
-    getContractsByInstitution,
-    getDecisionsByInstitution,
-    getProcurementPlansByInstitution,
-
-} from "../services/api";
-
-import { getRiskColor, getRiskLabel } from "../utils/helpers";
-import RiskGauge from "../components/RiskGauge";
+import { useState } from "react";
+import { useInstitutionDetail } from "../hooks/useInstitutionDetail";
 
 const TABS = ["plans", "notices", "contracts", "decisions"];
 
 export default function InstitutionDetailPage({ inst, onBack }) {
     const [activeTab, setActiveTab] = useState("notices");
 
-    // Data per tab
-    const [notices,   setNotices]   = useState([]);
-    const [contracts, setContracts] = useState([]);
-    const [decisions, setDecisions] = useState([]);
-    const [plans,     setPlans]     = useState([]);
-    const [loading,   setLoading]   = useState(true);
-
-    useEffect(() => {
-        if (!inst?.id) return;
-        setLoading(true);
-        Promise.all([
-            getNoticesByInstitution(inst.id),
-            getContractsByInstitution(inst.id),
-            getDecisionsByInstitution(inst.id),
-            getProcurementPlansByInstitution(inst.id),
-        ])
-            .then(([n, c, d, p]) => {
-                setNotices(n);
-                setContracts(c);
-                setDecisions(d);
-                setPlans(p);
-            })
-            .catch(console.error)
-            .finally(() => setLoading(false));
-    }, [inst?.id]);
+    const { notices, contracts, decisions, plans, loading } = useInstitutionDetail(inst?.id);
 
     const tabCount = {
         plans:     plans.length,
@@ -52,12 +17,10 @@ export default function InstitutionDetailPage({ inst, onBack }) {
 
     return (
         <div>
-            {/* Back */}
             <button onClick={onBack} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", color: "#2563eb", fontSize: 13, fontWeight: 700, cursor: "pointer", marginBottom: 20, padding: 0 }}>
                 ← Back to planned procurements
             </button>
 
-            {/* Header */}
             <div style={{ background: "white", borderRadius: 16, padding: "24px 28px", marginBottom: 20, boxShadow: "0 1px 4px rgba(0,0,0,0.07)", border: "1px solid #dbeafe" }}>
                 <div style={{ display: "flex", alignItems: "flex-start", gap: 16, marginBottom: 20 }}>
                     <div style={{ width: 56, height: 56, borderRadius: 14, background: "linear-gradient(135deg, #dbeafe, #bfdbfe)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, flexShrink: 0 }}>🏛️</div>
@@ -72,7 +35,6 @@ export default function InstitutionDetailPage({ inst, onBack }) {
                     </div>
                 </div>
 
-                {/* Mini stat cards */}
                 <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
                     {[
                         ["📅", "Plans",     plans.length],
@@ -91,7 +53,6 @@ export default function InstitutionDetailPage({ inst, onBack }) {
                 </div>
             </div>
 
-            {/* Tabs */}
             <div style={{ display: "flex", background: "white", borderRadius: "12px 12px 0 0", border: "1px solid #dbeafe", borderBottom: "none", overflow: "hidden" }}>
                 {TABS.map(tab => (
                     <button key={tab} onClick={() => setActiveTab(tab)}
@@ -107,13 +68,11 @@ export default function InstitutionDetailPage({ inst, onBack }) {
                 ))}
             </div>
 
-            {/* Tab content */}
             <div style={{ background: "white", borderRadius: "0 0 14px 14px", border: "1px solid #dbeafe", borderTop: "none", marginBottom: 24 }}>
                 {loading ? (
                     <div style={{ padding: "40px", textAlign: "center", color: "#9ca3af" }}>Loading data…</div>
                 ) : (
                     <>
-                        {/* NOTICES */}
                         {activeTab === "notices" && (
                             <>
                                 <div style={{ padding: "14px 20px", borderBottom: "1px solid #f3f4f6" }}>
@@ -139,7 +98,6 @@ export default function InstitutionDetailPage({ inst, onBack }) {
                             </>
                         )}
 
-                        {/* CONTRACTS */}
                         {activeTab === "contracts" && (
                             <>
                                 <div style={{ padding: "14px 20px", borderBottom: "1px solid #f3f4f6" }}>
@@ -159,7 +117,6 @@ export default function InstitutionDetailPage({ inst, onBack }) {
                             </>
                         )}
 
-                        {/* DECISIONS */}
                         {activeTab === "decisions" && (
                             <>
                                 <div style={{ padding: "14px 20px", borderBottom: "1px solid #f3f4f6" }}>
@@ -177,7 +134,6 @@ export default function InstitutionDetailPage({ inst, onBack }) {
                             </>
                         )}
 
-                        {/* PLANS */}
                         {activeTab === "plans" && (
                             <>
                                 <div style={{ padding: "14px 20px", borderBottom: "1px solid #f3f4f6" }}>
@@ -211,4 +167,3 @@ export default function InstitutionDetailPage({ inst, onBack }) {
         </div>
     );
 }
-
