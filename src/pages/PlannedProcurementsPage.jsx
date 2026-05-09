@@ -1,45 +1,32 @@
-
-import { useState, useEffect } from "react";
-import { getInstitutions } from "../services/api";
+import { useState, useMemo } from "react";
+import { useInstitutions } from "../hooks/useInstitutions";
 import InstitutionDetailPage from "./InstitutionDetailPage";
 
 export default function PlannedProcurementsPage() {
-    const [institutions, setInstitutions] = useState([]);
-    const [filtered,     setFiltered]     = useState([]);
-    const [loading,      setLoading]      = useState(true);
-    const [error,        setError]        = useState(null);
-    const [selected,     setSelected]     = useState(null);
+    const { institutions, loading, error } = useInstitutions();
+    const [selected,   setSelected]   = useState(null);
+    const [searchName, setSearchName] = useState("");
+    const [searchCity, setSearchCity] = useState("");
+    const [searchType, setSearchType] = useState("");
+    const [applied,    setApplied]    = useState({ name: "", city: "", type: "" });
 
-    const [searchName,   setSearchName]   = useState("");
-    const [searchCity,   setSearchCity]   = useState("");
-    const [searchType,   setSearchType]   = useState("");
+    const uniqueTypes = useMemo(
+        () => ["All", ...new Set(institutions.map(i => i.type).filter(Boolean))],
+        [institutions]
+    );
 
-    // Вчитај при старт
-    useEffect(() => {
-        getInstitutions()
-            .then(data => { setInstitutions(data); setFiltered(data); })
-            .catch(err => setError(err.message))
-            .finally(() => setLoading(false));
-    }, []);
+    const filtered = useMemo(() => institutions.filter(inst => {
+        const matchName = !applied.name || inst.name.toLowerCase().includes(applied.name.toLowerCase());
+        const matchCity = !applied.city || (inst.city && inst.city.toLowerCase().includes(applied.city.toLowerCase()));
+        const matchType = !applied.type || applied.type === "All" || inst.type === applied.type;
+        return matchName && matchCity && matchType;
+    }), [institutions, applied]);
 
-    const handleSearch = () => {
-        const results = institutions.filter(inst => {
-            const matchName = !searchName || inst.name.toLowerCase().includes(searchName.toLowerCase());
-            const matchCity = !searchCity || (inst.city && inst.city.toLowerCase().includes(searchCity.toLowerCase()));
-            const matchType = !searchType || searchType === "All" || inst.type === searchType;
-            return matchName && matchCity && matchType;
-        });
-        setFiltered(results);
+    const handleSearch = () => setApplied({ name: searchName, city: searchCity, type: searchType });
+    const handleClear  = () => {
+        setSearchName(""); setSearchCity(""); setSearchType("");
+        setApplied({ name: "", city: "", type: "" });
     };
-
-    const handleClear = () => {
-        setSearchName("");
-        setSearchCity("");
-        setSearchType("");
-        setFiltered(institutions);
-    };
-
-    const uniqueTypes = ["All", ...new Set(institutions.map(i => i.type).filter(Boolean))];
 
     if (selected) {
         return <InstitutionDetailPage inst={selected} onBack={() => setSelected(null)} />;
@@ -52,15 +39,12 @@ export default function PlannedProcurementsPage() {
                 <p style={{ margin: "4px 0 0", color: "#6b7280", fontSize: 14 }}>Contracting authorities from the backend</p>
             </div>
 
-            {/* Filters */}
             <div style={{ background: "white", borderRadius: 12, padding: "16px 20px", marginBottom: 20, display: "flex", gap: 14, alignItems: "flex-end", flexWrap: "wrap", boxShadow: "0 1px 4px rgba(0,0,0,0.07)", border: "1px solid #dbeafe" }}>
                 <div style={{ flex: 2, minWidth: 180 }}>
                     <label style={{ fontSize: 11, fontWeight: 700, color: "#6b7280", display: "block", marginBottom: 6 }}>INSTITUTION NAME</label>
                     <input value={searchName} onChange={e => setSearchName(e.target.value)}
                            placeholder="Search by name…"
                            style={{ width: "100%", padding: "8px 12px", borderRadius: 8, border: "1.5px solid #e5e7eb", fontSize: 13, outline: "none", boxSizing: "border-box" }}
-                           onFocus={e => e.target.style.borderColor = "#2563eb"}
-                           onBlur={e => e.target.style.borderColor = "#e5e7eb"}
                            onKeyDown={e => e.key === "Enter" && handleSearch()} />
                 </div>
                 <div style={{ flex: 1, minWidth: 130 }}>
@@ -68,8 +52,6 @@ export default function PlannedProcurementsPage() {
                     <input value={searchCity} onChange={e => setSearchCity(e.target.value)}
                            placeholder="e.g. Skopje"
                            style={{ width: "100%", padding: "8px 12px", borderRadius: 8, border: "1.5px solid #e5e7eb", fontSize: 13, outline: "none", boxSizing: "border-box" }}
-                           onFocus={e => e.target.style.borderColor = "#2563eb"}
-                           onBlur={e => e.target.style.borderColor = "#e5e7eb"}
                            onKeyDown={e => e.key === "Enter" && handleSearch()} />
                 </div>
                 <div style={{ flex: 1, minWidth: 150 }}>
@@ -89,14 +71,12 @@ export default function PlannedProcurementsPage() {
                 Showing <strong>{filtered.length}</strong> of {institutions.length} institutions
             </div>
 
-            {/* Error */}
             {error && (
                 <div style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 10, padding: "12px 16px", marginBottom: 16, color: "#dc2626", fontSize: 13 }}>
                     ⚠️ Backend error: {error}
                 </div>
             )}
 
-            {/* Table */}
             <div style={{ background: "white", borderRadius: 14, overflow: "hidden", boxShadow: "0 1px 4px rgba(0,0,0,0.07)", border: "1px solid #dbeafe" }}>
                 <div style={{ padding: "16px 20px", borderBottom: "1px solid #f3f4f6" }}>
                     <h3 style={{ margin: 0, fontSize: 15, fontWeight: 800, color: "#1e3a5f" }}>List of contracting authorities</h3>
@@ -116,7 +96,7 @@ export default function PlannedProcurementsPage() {
                         <tr><td colSpan={5} style={{ padding: "40px", textAlign: "center", color: "#9ca3af" }}>No institutions found.</td></tr>
                     ) : filtered.map((inst, i) => (
                         <tr key={inst.id}
-                            style={{ borderBottom: "1px solid #f3f4f6", background: i % 2 === 0 ? "#f0f6ff" : "white", cursor: "pointer", transition: "background 0.15s" }}
+                            style={{ borderBottom: "1px solid #f3f4f6", background: i % 2 === 0 ? "#f0f6ff" : "white", cursor: "pointer" }}
                             onMouseEnter={e => e.currentTarget.style.background = "#dbeafe"}
                             onMouseLeave={e => e.currentTarget.style.background = i % 2 === 0 ? "#f0f6ff" : "white"}
                             onClick={() => setSelected(inst)}

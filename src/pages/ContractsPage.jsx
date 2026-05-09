@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react";
-import { getContracts } from "../services/api";
+import { useContracts } from "../hooks/useContracts";
 
 const RISK_COLORS = {
     HIGH:    { bg: "#fef2f2", text: "#dc2626", border: "#fecaca" },
@@ -19,57 +18,20 @@ function RiskBadge({ level }) {
     );
 }
 
+const inputStyle = {
+    padding: "8px 12px", borderRadius: 8, border: "1.5px solid #e5e7eb",
+    fontSize: 13, outline: "none", background: "white",
+};
+
 export default function ContractsPage({ onOpenDetail }) {
-    const [contracts,  setContracts]  = useState([]);
-    const [loading,    setLoading]    = useState(true);
-    const [error,      setError]      = useState(null);
-    const [total,      setTotal]      = useState(0);
-    const [page,       setPage]       = useState(0);
-    const [totalPages, setTotalPages] = useState(0);
+    const {
+        contracts, loading, error,
+        total, page, totalPages,
+        filters, setFilters,
+        search, clear, goToPage,
+    } = useContracts();
 
-    const [searchText, setSearchText] = useState("");
-    const [dateFrom,   setDateFrom]   = useState("");
-    const [dateTo,     setDateTo]     = useState("");
-    const [minValue,   setMinValue]   = useState("");
-    const [maxValue,   setMaxValue]   = useState("");
-    const [riskLevel,  setRiskLevel]  = useState("");
-
-    const load = (p = 0, filters = {}) => {
-        setLoading(true);
-        getContracts({
-            institution: filters.searchText || searchText || undefined,
-            dateFrom:    filters.dateFrom   ?? (dateFrom   || undefined),
-            dateTo:      filters.dateTo     ?? (dateTo     || undefined),
-            minValue:    filters.minValue   ?? (minValue   || undefined),
-            maxValue:    filters.maxValue   ?? (maxValue   || undefined),
-            riskLevel:   filters.riskLevel  ?? (riskLevel  || undefined),
-            page: p,
-            size: 20,
-        })
-            .then(res => {
-                setContracts(res.items);
-                setTotal(res.totalElements);
-                setTotalPages(res.totalPages);
-                setPage(p);
-            })
-            .catch(err => setError(err.message))
-            .finally(() => setLoading(false));
-    };
-
-    useEffect(() => { load(0); }, []);
-
-    const handleSearch = () => load(0);
-
-    const handleClear = () => {
-        setSearchText(""); setDateFrom(""); setDateTo("");
-        setMinValue(""); setMaxValue(""); setRiskLevel("");
-        load(0, { searchText: "", dateFrom: undefined, dateTo: undefined, minValue: undefined, maxValue: undefined, riskLevel: undefined });
-    };
-
-    const inputStyle = {
-        padding: "8px 12px", borderRadius: 8, border: "1.5px solid #e5e7eb",
-        fontSize: 13, outline: "none", background: "white",
-    };
+    const setFilter = (key, val) => setFilters(f => ({ ...f, [key]: val }));
 
     return (
         <div>
@@ -83,19 +45,19 @@ export default function ContractsPage({ onOpenDetail }) {
             <div style={{ background: "white", borderRadius: 12, padding: "16px 18px", marginBottom: 18,
                 boxShadow: "0 1px 4px rgba(0,0,0,0.07)", border: "1px solid #dbeafe" }}>
                 <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr 1fr", gap: 10, marginBottom: 10 }}>
-                    <input value={searchText} onChange={e => setSearchText(e.target.value)}
-                        onKeyDown={e => e.key === "Enter" && handleSearch()}
+                    <input value={filters.searchText} onChange={e => setFilter("searchText", e.target.value)}
+                        onKeyDown={e => e.key === "Enter" && search()}
                         placeholder="Search institution, supplier, subject…"
                         style={{ ...inputStyle }} />
-                    <input value={dateFrom} onChange={e => setDateFrom(e.target.value)}
-                        type="date" style={{ ...inputStyle }} placeholder="Date from" />
-                    <input value={dateTo} onChange={e => setDateTo(e.target.value)}
-                        type="date" style={{ ...inputStyle }} placeholder="Date to" />
-                    <input value={minValue} onChange={e => setMinValue(e.target.value)}
+                    <input value={filters.dateFrom} onChange={e => setFilter("dateFrom", e.target.value)}
+                        type="date" style={{ ...inputStyle }} />
+                    <input value={filters.dateTo} onChange={e => setFilter("dateTo", e.target.value)}
+                        type="date" style={{ ...inputStyle }} />
+                    <input value={filters.minValue} onChange={e => setFilter("minValue", e.target.value)}
                         placeholder="Min value" type="number" style={{ ...inputStyle }} />
-                    <input value={maxValue} onChange={e => setMaxValue(e.target.value)}
+                    <input value={filters.maxValue} onChange={e => setFilter("maxValue", e.target.value)}
                         placeholder="Max value" type="number" style={{ ...inputStyle }} />
-                    <select value={riskLevel} onChange={e => setRiskLevel(e.target.value)}
+                    <select value={filters.riskLevel} onChange={e => setFilter("riskLevel", e.target.value)}
                         style={{ ...inputStyle }}>
                         <option value="">All Risk Levels</option>
                         <option value="HIGH">High</option>
@@ -105,14 +67,8 @@ export default function ContractsPage({ onOpenDetail }) {
                     </select>
                 </div>
                 <div style={{ display: "flex", gap: 10 }}>
-                    <button onClick={handleSearch}
-                        style={{ padding: "8px 24px", background: "#2563eb", color: "white", border: "none", borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
-                        Search
-                    </button>
-                    <button onClick={handleClear}
-                        style={{ padding: "8px 16px", background: "#f3f4f6", color: "#6b7280", border: "none", borderRadius: 8, fontSize: 13, cursor: "pointer" }}>
-                        Clear
-                    </button>
+                    <button onClick={search} style={{ padding: "8px 24px", background: "#2563eb", color: "white", border: "none", borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: "pointer" }}>Search</button>
+                    <button onClick={clear}  style={{ padding: "8px 16px", background: "#f3f4f6", color: "#6b7280", border: "none", borderRadius: 8, fontSize: 13, cursor: "pointer" }}>Clear</button>
                 </div>
             </div>
 
@@ -142,14 +98,13 @@ export default function ContractsPage({ onOpenDetail }) {
                         ) : contracts.length === 0 ? (
                             <tr><td colSpan={9} style={{ padding: 40, textAlign: "center", color: "#9ca3af" }}>No contracts found</td></tr>
                         ) : contracts.map((c, i) => (
-                            <tr key={c.id} style={{ borderBottom: "1px solid #f3f4f6", background: i % 2 === 0 ? "#f0f6ff" : "white", cursor: "pointer" }}
+                            <tr key={c.id}
+                                style={{ borderBottom: "1px solid #f3f4f6", background: i % 2 === 0 ? "#f0f6ff" : "white", cursor: "pointer" }}
                                 onMouseEnter={e => e.currentTarget.style.background = "#dbeafe"}
                                 onMouseLeave={e => e.currentTarget.style.background = i % 2 === 0 ? "#f0f6ff" : "white"}
                                 onClick={() => onOpenDetail && onOpenDetail(c.id)}>
                                 <td style={{ padding: "12px 16px", maxWidth: 220 }}>
-                                    <div style={{ fontSize: 13, fontWeight: 600, color: "#1e3a5f", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                                        {c.description || "—"}
-                                    </div>
+                                    <div style={{ fontSize: 13, fontWeight: 600, color: "#1e3a5f", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.description || "—"}</div>
                                     <div style={{ fontSize: 11, color: "#9ca3af" }}>{c.noticeNumber}</div>
                                 </td>
                                 <td style={{ padding: "12px 16px", fontSize: 12, color: "#374151", maxWidth: 180 }}>
@@ -199,17 +154,13 @@ export default function ContractsPage({ onOpenDetail }) {
 
             {totalPages > 1 && (
                 <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 8, marginTop: 20 }}>
-                    <button onClick={() => load(page - 1)} disabled={page === 0}
-                        style={{ padding: "7px 16px", borderRadius: 8, border: "1px solid #e5e7eb",
-                            background: page === 0 ? "#f3f4f6" : "white", cursor: page === 0 ? "default" : "pointer", fontSize: 13 }}>
+                    <button onClick={() => goToPage(page - 1)} disabled={page === 0}
+                        style={{ padding: "7px 16px", borderRadius: 8, border: "1px solid #e5e7eb", background: page === 0 ? "#f3f4f6" : "white", cursor: page === 0 ? "default" : "pointer", fontSize: 13 }}>
                         ← Prev
                     </button>
-                    <span style={{ padding: "7px 16px", fontSize: 13, color: "#6b7280" }}>
-                        Page {page + 1} of {totalPages}
-                    </span>
-                    <button onClick={() => load(page + 1)} disabled={page >= totalPages - 1}
-                        style={{ padding: "7px 16px", borderRadius: 8, border: "1px solid #e5e7eb",
-                            background: page >= totalPages - 1 ? "#f3f4f6" : "white", cursor: page >= totalPages - 1 ? "default" : "pointer", fontSize: 13 }}>
+                    <span style={{ padding: "7px 16px", fontSize: 13, color: "#6b7280" }}>Page {page + 1} of {totalPages}</span>
+                    <button onClick={() => goToPage(page + 1)} disabled={page >= totalPages - 1}
+                        style={{ padding: "7px 16px", borderRadius: 8, border: "1px solid #e5e7eb", background: page >= totalPages - 1 ? "#f3f4f6" : "white", cursor: page >= totalPages - 1 ? "default" : "pointer", fontSize: 13 }}>
                         Next →
                     </button>
                 </div>
