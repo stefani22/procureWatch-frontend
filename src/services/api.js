@@ -1,6 +1,7 @@
 const BASE_URL = "http://localhost:8080/api";
 
-async function request(path, token) {
+async function request(path) {
+    const token = localStorage.getItem("pw_token");
     const headers = {};
     if (token) headers["Authorization"] = `Bearer ${token}`;
     const res = await fetch(`${BASE_URL}${path}`, { headers });
@@ -8,7 +9,8 @@ async function request(path, token) {
     return res.json();
 }
 
-async function post(path, body = {}, token) {
+async function post(path, body = {}) {
+    const token = localStorage.getItem("pw_token");
     const headers = { "Content-Type": "application/json" };
     if (token) headers["Authorization"] = `Bearer ${token}`;
     const res = await fetch(`${BASE_URL}${path}`, {
@@ -17,7 +19,6 @@ async function post(path, body = {}, token) {
         body: JSON.stringify(body),
     });
     if (!res.ok) throw new Error(`API error ${res.status}: ${path}`);
-
     const text = await res.text();
     return text ? JSON.parse(text) : {};
 }
