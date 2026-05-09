@@ -97,7 +97,10 @@ function InstitutionsPage({ onOpenInstitution }) {
 
 
 export default function App() {
-    const [user,                setUser]               = useState(null);
+    const [user, setUser] = useState(() => {
+        const saved = localStorage.getItem("pw_user");
+        return saved ? JSON.parse(saved) : null;
+    });
     const [page,                setPage]               = useState("dashboard");
     const [selectedContractId,  setSelectedContractId] = useState(null);
     const [selectedInstitution, setSelectedInstitution] = useState(null);
