@@ -1,16 +1,33 @@
-# React + Vite
+# ProcureWatch Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React-based frontend for the ProcureWatch system — a platform for analyzing 
+public procurement data and detecting suspicious patterns.
 
-Currently, two official plugins are available:
+## About
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+ProcureWatch helps analysts and auditors identify high-risk procurement contracts
+by combining rule-based risk scoring, lifecycle tracking, and AI-generated explanations.
 
-## React Compiler
+## Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Dashboard** — Overview of procurement data with KPIs and trends
+- **High Risk Queue** — Working list of flagged contracts sorted by priority
+- **Contract Detail** — Full analysis with Risk Score, Triggered Flags, Lifecycle timeline and AI Explanation
+- **Contracts** — Advanced search and filtering
+- **Institutions** — Contracting authorities with plans, notices and contracts
+- **Risk Analysis** — Run and manage risk assessments
 
-## Expanding the ESLint configuration
+## Tech Stack
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- React + Vite
+- JavaScript 
+- REST API integration with Spring Boot backend
+
+## Getting Started
+
+```bash
+npm install
+npm run dev
+```
+
+The app runs on `http://localhost:5173` and connects to the backend at `http://localhost:8080`.
